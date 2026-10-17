@@ -25,7 +25,8 @@ const PersonForm = (props) => {
 
 const Persons = (props) => {
   return (props.persons.map((person) => (
-        <div key={person.name}>{person.name} {person.number}</div>
+        <div key={person.name}>{person.name} {person.number} 
+        <button onClick={() => props.handlePersonDelete(person.id)}>delete</button></div>
       )))
 }
 
@@ -43,6 +44,12 @@ const App = () => {
       setPersons(initialPersons)
     })
   }, [])
+
+  const handlePersonDelete = (id) => {
+    if (window.confirm("Delete " + persons.find(person => person.id === id).name + "?")) {
+      personService.remove(id).then(() => {setPersons(persons.filter(person => person.id !== id))})
+    }
+  }
 
   const handleNameChange = (event) => {
   setNewName(event.target.value)
@@ -62,8 +69,21 @@ const addPerson = (event) => {
     name: newName,
     number: newNumber,
   }
-  if (persons.some(person => person.name === newName)) {
-    alert(`${newName} is already added to phonebook`)
+
+  const existingPerson = persons.find(person => person.name === newName)
+  
+  if (existingPerson) {
+    //alert(`${newName} is already added to phonebook`)
+    if (window.confirm(`Update ${newName} phone number?`)) {
+    personService
+      .update(existingPerson.id, { ...existingPerson, number: newNumber })
+      .then((returnedPerson) => {
+        setPersons(persons.map(person => person.id === existingPerson.id ? returnedPerson : person))
+        setNewName('')
+        setNewNumber('')
+      })
+  }
+
     return
   }
   personService
@@ -83,9 +103,8 @@ const filterPerson = persons.filter((person) => person.name.toLowerCase().includ
       <Filter filter={filter} handleFilterChange={handleFilterChange} />
       <PersonForm addPerson={addPerson} newName={newName} handleNameChange={handleNameChange} 
       newNumber={newNumber} handleNumberChange={handleNumberChange} />
-      <div>debug: {newName}</div>
       <h2>Numbers</h2>
-      <Persons persons={filterPerson} />
+      <Persons persons={filterPerson} handlePersonDelete={handlePersonDelete} />
     </div>
   )
 }
