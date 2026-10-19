@@ -105,7 +105,7 @@ const addPerson = (event) => {
           setErrorMessage(null)
         }, 5000)
         setPersons(persons.filter(person => person.id !== existingPerson.id))
-      })
+      }) 
   }
 
     return
